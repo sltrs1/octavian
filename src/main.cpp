@@ -1,53 +1,106 @@
-//Using SDL and standard IO
-#include <SDL2/SDL.h>
-#include <stdio.h>
+#include "include/globals.h"
+#include "include/button.h"
+#include "include/slot.h"
+#include "include/fpstex.h"
 
-//Screen dimension constants
-const int SCREEN_WIDTH = 1000;
-const int SCREEN_HEIGHT = 500;
+int init = 	SDL_Init(SDL_INIT_EVERYTHING);
+SDL_Window * win = SDL_CreateWindow("Slot_Machine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, 0);
+SDL_Renderer * ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
 
 int main( int argc, char* args[] )
 {
-	//The window we'll be rendering to
-	SDL_Window* window = NULL;
-	
-	//The surface contained by the window
-	SDL_Surface* screenSurface = NULL;
 
-	//Initialize SDL
-	if( SDL_Init( SDL_INIT_VIDEO ) < 0 )
-	{
-		printf( "SDL could not initialize! SDL_Error: %s\n", SDL_GetError() );
+	IMG_Init(IMG_INIT_PNG);
+	TTF_Init();
+
+	bool running = true;
+	bool spinStatus = false;
+
+	std::string tex_names[NUM_COLS];
+	for (size_t i = 0; i < 5; i++) {
+		tex_names[i] = "textures/texture" + std::to_string(i+1) + ".png";
 	}
-	else
-	{
-		//Create window
-		window = SDL_CreateWindow( "SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
-		if( window == NULL )
-		{
-			printf( "Window could not be created! SDL_Error: %s\n", SDL_GetError() );
-		}
-		else
-		{
-			//Get window surface
-			screenSurface = SDL_GetWindowSurface( window );
 
-			//Fill the surface white
-			SDL_FillRect( screenSurface, NULL, SDL_MapRGB( screenSurface->format, 0xFF, 0xFF, 0xFF ) );
+	Button btn;
+	std::vector<Slot> slots;
+	double base_ref_rate = 300.0;
+	double ref_rate_step = 150.0;
+	double base_spin_time = 4000.0;
+	double spin_time_step = 500.0;
+
+	for (size_t i = 0; i < NUM_ROWS; ++i) {
+
+		for (size_t j = 0; j < NUM_COLS; ++j) {
+			slots.emplace_back(Slot{tex_names[j], j, i, i, base_ref_rate+ref_rate_step*j, base_spin_time+spin_time_step*j});
+		}
+	}
+
+	FPSTex fps(std::string("textures/courier_new.ttf"));
+
+	fps.start();
+
+	// main loop
+	while (running) {
+
+		SDL_Event e;
+
+		SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
+		SDL_RenderClear(ren);
+
+		// Event loop
+		while (SDL_PollEvent(&e)) {
+
+			switch (e.type)
+			{
+				case SDL_QUIT:
+					running = false;
+					break;
+
+				case SDL_MOUSEBUTTONDOWN:
+					
+					spinStatus = false;
+
+					for (auto & sl : slots) {
+						if ( sl.getSpinStatus() ) {
+							spinStatus = true;
+							break;
+						}
+					}
+
+					if (!spinStatus) {
+						for (auto & sl : slots) {
+							sl.startSpin();
+						}
+					}
+
+					break;
 			
-			//Update the surface
-			SDL_UpdateWindowSurface( window );
+				default:
+					break;
+			}
 
-			//Wait two seconds
-			SDL_Delay( 2000 );
+		} // end event loop
+
+		btn.update();
+		btn.draw();
+		
+		for (auto & sl : slots) {
+			if (sl.getSpinStatus()) {
+				sl.update();
+			}
+			sl.draw();
 		}
-	}
 
-	//Destroy window
-	SDL_DestroyWindow( window );
+		fps.update();
+		fps.draw();
 
-	//Quit SDL subsystems
+		SDL_RenderPresent(ren);
+
+		SDL_Delay(10);
+
+
+	} // end main loop
+
 	SDL_Quit();
-
 	return 0;
 }

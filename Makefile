@@ -5,7 +5,7 @@
 # Compiler settings - Can be customized.
 CC = g++
 CXXFLAGS = -std=c++17 -Wall -g
-LDFLAGS = -lSDL2 -lSDL2main
+LDFLAGS = -lSDL2 -lSDL2main -lSDL2_image -lSDL2_ttf
 
 # Makefile settings - Can be customized.
 APPNAME = octavian
@@ -64,6 +64,6 @@ cleanw:
 	$(DEL) $(WDELOBJ) $(DEP) $(APPNAME)$(EXE)
 
 # Cleans only all files with the extension .d
-.PHONY: cleandepw
+.PHONY: cleandepw#include <SDL2/SDL_image.h>
 cleandepw:
 	$(DEL) $(DEP)
