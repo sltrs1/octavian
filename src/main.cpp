@@ -1,9 +1,18 @@
+/*
+Тестовое задание для Октавиан.
+Модель игрового автомата с пятью барабанами.
+Запуск по мигающей кнопке в углу.
+
+Могут быть некоторые проблемы с подключением заголовочных файлов в IDE.
+*/
+
 #include "include/globals.h"
 #include "include/button.h"
 #include "include/slot.h"
 #include "include/fpstex.h"
 
-int init = 	SDL_Init(SDL_INIT_EVERYTHING);
+// Рендерер и окно проще объявить глобальными, чтобы не передавать их туда-сюда.
+int init = SDL_Init(SDL_INIT_EVERYTHING);
 SDL_Window * win = SDL_CreateWindow("Slot_Machine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, 0);
 SDL_Renderer * ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
 
@@ -23,7 +32,9 @@ int main( int argc, char* args[] )
 
 	Button btn;
 	std::vector<Slot> slots;
-	double base_ref_rate = 300.0;
+	// Скорость и время вращения задается здесь.
+	// Каждый следующий барабан вращается дольше и медленней.
+	double base_ref_rate = 150.0;
 	double ref_rate_step = 150.0;
 	double base_spin_time = 4000.0;
 	double spin_time_step = 500.0;
@@ -56,17 +67,22 @@ int main( int argc, char* args[] )
 					running = false;
 					break;
 
+				// Обработку нажатия на кнопку оказалось удобнее сделать вне кнопки,
+				// в цикле обработки событий.
 				case SDL_MOUSEBUTTONDOWN:
 					
 					spinStatus = false;
 
+					// Проверка слотов на вращение
 					for (auto & sl : slots) {
 						if ( sl.getSpinStatus() ) {
 							spinStatus = true;
 							break;
 						}
 					}
-
+					
+					// Если ни один слот нее вращается, 
+					// то запустить все по очереди по нажатию на кнопку.
 					if (!spinStatus) {
 						for (auto & sl : slots) {
 							sl.startSpin();
@@ -81,9 +97,12 @@ int main( int argc, char* args[] )
 
 		} // end event loop
 
+		// обновление кнопки
 		btn.update();
 		btn.draw();
 		
+		// Если слот вращается, то обновить и перерисовать.
+		// Если не вращается, то просто перерисовать.
 		for (auto & sl : slots) {
 			if (sl.getSpinStatus()) {
 				sl.update();
@@ -91,11 +110,13 @@ int main( int argc, char* args[] )
 			sl.draw();
 		}
 
+		// Обновление текстуры со счетчиком ФПС
 		fps.update();
 		fps.draw();
 
 		SDL_RenderPresent(ren);
 
+		// Задержка, чтобы цменьшить ФПС и жрать поменьше процессора
 		SDL_Delay(10);
 
 

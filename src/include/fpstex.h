@@ -1,6 +1,9 @@
 #ifndef _FPSTEX_H_
 #define _FPSTEX_H_
 
+// Кдасс, совмещающий счетчик ФПС с текстурой,
+// на которой он рисуется.
+
 #include "globals.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -9,6 +12,11 @@
 
 class FPSTex {
     public:
+    /**
+     * @brief Construct a new FPSTex object
+     * 
+     * @param z_font - строка с указанием на шрифт
+     */
     FPSTex(std::string z_font);
     ~FPSTex();
 

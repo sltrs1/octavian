@@ -1,6 +1,9 @@
 #ifndef _GLOBALS_H_
 #define _GLOBALS_H_
 
+// Глобальные констранты для размеров графических элементов
+// Через этот же файл осуществяется передачи глобальной переменной рендерера.
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
